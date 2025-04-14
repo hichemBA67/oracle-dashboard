@@ -50,7 +50,7 @@ export default function Home() {
       process.env.NEXT_PUBLIC_CHAINLINK_FEED ||
       "0xc907E116054Ad103354f2D350FD2514433D57F6f";
 
-    const setupListener = async () => {
+    const fetchInitialPriceAndListen = async () => {
       const proxy = new ethers.Contract(proxyAddress, proxyAbi, provider);
       const aggregatorAddress = await proxy.aggregator();
       console.log("🔗 Aggregator address:", aggregatorAddress);
@@ -61,12 +61,13 @@ export default function Home() {
         provider
       );
 
-      // Initial get
+      // Initial fetch
       const [, answer, , updatedAt] = await feed.latestRoundData();
       const initialPrice = Number(answer) / 1e8;
       setOraclePrice(initialPrice);
       setOracleTime(new Date(Number(updatedAt) * 1000).toLocaleString());
 
+      // Listen for updates
       feed.on("AnswerUpdated", (current, roundId, updatedAt) => {
         const price = Number(current) / 1e8;
         setOraclePrice(price);
@@ -82,7 +83,7 @@ export default function Home() {
       });
     };
 
-    setupListener();
+    fetchInitialPriceAndListen();
   }, []);
 
   useEffect(() => {
@@ -111,7 +112,7 @@ export default function Home() {
         <div className="border rounded-xl p-4 shadow">
           <h2 className="font-semibold mb-2">🧠 Chainlink Oracle (BTC/USD)</h2>
           <p className="text-lg">
-            Price: {oraclePrice?.toFixed(4) ?? "Waiting for event..."} USD
+            Price: {oraclePrice?.toFixed(4) ?? "Loading..."} USD
           </p>
           <p className="text-sm text-gray-600">
             Last updated: {oracleTime ?? "..."}
