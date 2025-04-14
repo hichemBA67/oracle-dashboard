@@ -1,28 +1,3 @@
-// Project: Chainlink & Coinbase Price Viewer
-// Stack: Next.js + TypeScript (frontend only, no backend), Tailwind optional
-
-// ===================================
-// ✅ HOW TO START THIS PROJECT
-// ===================================
-
-// 1. Create the project:
-//    npx create-next-app@latest chainlink-cex-dashboard --typescript
-//    cd chainlink-cex-dashboard
-
-// 2. Install ethers:
-//    npm install ethers
-
-// 3. Optional: Tailwind CSS setup
-//    npm install -D tailwindcss postcss autoprefixer
-//    npx tailwindcss init -p
-//    Add Tailwind setup to tailwind.config.js and globals.css
-
-// 4. Add environment variables in .env.local:
-//    NEXT_PUBLIC_RPC_URL=https://polygon-bor-rpc.publicnode.com
-//    NEXT_PUBLIC_CHAINLINK_FEED=0xc907E116054Ad103354f2D350FD2514433D57F6f
-
-// 5. Replace contents of `app/page.tsx` (App Router) or `pages/index.tsx` with the following:
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -31,6 +6,7 @@ import { ethers } from "ethers";
 const proxyAbi = ["function aggregator() view returns (address)"];
 
 const aggregatorAbi = [
+  "function latestRoundData() view returns (uint80, int256, uint256, uint256, uint80)",
   "event AnswerUpdated(int256 indexed current, uint256 indexed roundId, uint256 updatedAt)",
   "event NewRound(uint256 indexed roundId, address indexed startedBy, uint256 startedAt)",
 ];
@@ -85,6 +61,12 @@ export default function Home() {
         provider
       );
 
+      // Initial get
+      const [, answer, , updatedAt] = await feed.latestRoundData();
+      const initialPrice = Number(answer) / 1e8;
+      setOraclePrice(initialPrice);
+      setOracleTime(new Date(Number(updatedAt) * 1000).toLocaleString());
+
       feed.on("AnswerUpdated", (current, roundId, updatedAt) => {
         const price = Number(current) / 1e8;
         setOraclePrice(price);
@@ -120,14 +102,14 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="border rounded-xl p-4 shadow">
-          <h2 className="font-semibold mb-2">Coinbase (BTC/USD)</h2>
+          <h2 className="font-semibold mb-2">🏦 Coinbase (BTC/USD)</h2>
           <p className="text-lg">
             Price: {coinbasePrice?.toFixed(4) ?? "Connecting..."} USD
           </p>
         </div>
 
         <div className="border rounded-xl p-4 shadow">
-          <h2 className="font-semibold mb-2">Chainlink Oracle (BTC/USD)</h2>
+          <h2 className="font-semibold mb-2">🧠 Chainlink Oracle (BTC/USD)</h2>
           <p className="text-lg">
             Price: {oraclePrice?.toFixed(4) ?? "Waiting for event..."} USD
           </p>
