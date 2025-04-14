@@ -20,7 +20,7 @@ const NETWORKS = [
   },
   {
     name: "Ethereum",
-    wsUrl: "wss://mainnet.gateway.tenderly.co",
+    wsUrl: "wss://eth.drpc.org",
     feedAddress: "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
     icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_D16PwojyH2cc39r34C0bsOC-dxNFDNjPdg&s",
   },
@@ -49,6 +49,9 @@ export default function Home() {
     Record<string, string>
   >({});
   const [usdDeviations, setUsdDeviations] = useState<Record<string, string>>(
+    {}
+  );
+  const [flashNetworks, setFlashNetworks] = useState<Record<string, boolean>>(
     {}
   );
 
@@ -110,6 +113,11 @@ export default function Home() {
             ...prev,
             [network.name]: new Date(Number(updatedAt) * 1000).toLocaleString(),
           }));
+
+          setFlashNetworks((prev) => ({ ...prev, [network.name]: true }));
+          setTimeout(() => {
+            setFlashNetworks((prev) => ({ ...prev, [network.name]: false }));
+          }, 2000);
         });
       };
 
@@ -155,7 +163,9 @@ export default function Home() {
         {NETWORKS.map((network) => (
           <div
             key={network.name}
-            className="border rounded-xl p-4 shadow relative"
+            className={`border rounded-xl p-4 shadow relative transition-all duration-300 ${
+              flashNetworks[network.name] ? "ring-4 ring-yellow-400" : ""
+            }`}
           >
             <img
               src={network.icon}
